@@ -2,8 +2,8 @@ const Logger = require('../../lib/Logger');
 const scopeCheck = require('./auth0/scopeCheck');
 
 exports.handler = (event, context, callback) => {
-  const { body: data } = event;
-  const { scopes } = data;
+  const { scopes } = event.requestContext.authorizer;
+  Logger.info(JSON.stringify(scopes));
   const { status } = scopeCheck(scopes, 'write:actor');
 
   const payload = {
