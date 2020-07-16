@@ -19,8 +19,11 @@
   "keywords": [
     "AWS",
     "Serverless",
-    "DynamoDb",
-    "CRUD"
+    "Auth0",
+    "Lambda",
+    "Scope",
+    "CORS",
+    "API"
   ],
   "author": "jefferson caoile cerujano",
   "license": "MIT",
@@ -30,20 +33,14 @@
   "homepage": "https://github.com/jepoycerujano/AWS_Serverless_Api_Lambda_Auth_CORS#readme",
   "dependencies": {
     "aws-sdk": "^2.645.0",
-    "axios": "^0.19.2",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.8.0",
-    "middy": "^0.36.0",
-    "moment": "^2.24.0",
-    "uuid": "^7.0.2",
-    "winston": "^3.2.1",
-    "yup": "^0.28.3"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.1",
-    "serverless-dynamodb-local": "^0.2.39",
     "serverless-latest-layer-version": "^2.1.0",
     "serverless-offline": "^6.1.0",
     "serverless-pseudo-parameters": "^2.5.0"

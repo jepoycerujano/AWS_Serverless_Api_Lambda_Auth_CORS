@@ -1,22 +1,13 @@
-service: aws-serverles-crud
+service: aws-serverles-api-lambda-cors
 
 frameworkVersion: ">=1.0.0 <2.0.0"
 
 plugins:
-  - serverless-dynamodb-local # for developers
   - serverless-latest-layer-version # for developers
   - serverless-pseudo-parameters # for developers
   - serverless-offline # for developers
 
 custom:
-  dynamodb:
-    stages:
-      - dev
-    start:
-      port: 8000
-      migrate: true
-      inMemory: true
-      onStart: true
   serverless-offline:
     httpPort: 9090
 
@@ -27,12 +18,7 @@ package:
     - ".dynamodb/**"
     - ".serverless/**"
   include:
-    - src/module/actor/createActor.js
-    - src/module/actor/deleteActor.js
-    - src/module/actor/getActor.js
-    - src/module/actor/getMultiActor.js
-    - src/module/actor/updateActor.js
-    - src/module/actor/scanActor.js
+    - src/module/index.js
 
 provider:
   name: aws
@@ -44,21 +30,10 @@ provider:
   environment:
     DEPLOYMENT_STAGE: ${self:provider.stage} # staging environment dev, test or prod
     ALLOWED_ORIGINS: '*.nipahut.club'
-    WORKFLOW_ACTOR_TABLE: workflow_actor-${self:provider.stage} # actors table service
     AUTH0_DOMAIN: hzp41c93 # auth0 domain
     NODE_PATH: './:/opt/node_modules'
 
   iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource:
-        - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:provider.environment.WORKFLOW_ACTOR_TABLE}
     - Effect: Allow
       Action:
         - lambda:InvokeFunction
@@ -67,19 +42,6 @@ provider:
 
 resources:
   Resources:
-    WorkflowActor: # workflow actors table
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:provider.environment.WORKFLOW_ACTOR_TABLE}
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
     GatewayResponseDefault4XX:
       Type: 'AWS::ApiGateway::GatewayResponse'
       Properties:
@@ -89,109 +51,18 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'
+
 functions:
-# CRUD for Workflow Actor 
-# Create, Read, Update, Scan and Delete function
-  createActor:
-    description: create actor
-    handler: src/module/actor/createActor.handler
+  corsHandler:
+    description: cors handler response
+    handler: src/module/index.handler
     layers:
       - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
     events:
       - http:
-          path: /create
+          path: /cors
           method: post
-          authorizer: 
-            name: auth0
-          cors:
-            origin: 'http://localhost:3000'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
-  getActor:
-    description: get actor
-    handler: src/module/actor/getActor.handler
-    layers:
-      - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
-    events:
-      - http:
-          path: /get
-          method: post
-          authorizer: 
-            name: auth0
-          cors:
-            origin: 'http://localhost:3000'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-  updateActor:
-    description: update actor
-    handler: src/module/actor/updateActor.handler
-    layers:
-      - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
-    events:
-      - http:
-          path: /update
-          method: post
-          authorizer: 
-            name: auth0
-          cors:
-            origin: 'http://localhost:3000'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true 
-
-  deleteActor:
-    description: delete actor
-    handler: src/module/actor/deleteActor.handler
-    layers:
-      - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
-    events:
-      - http:
-          path: /delete
-          method: post
-          authorizer: 
-            name: auth0
-          cors:
-            origin: 'http://localhost:3000'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
-  getMultiActor:
-    description: get one or multiple actors
-    handler: src/module/actor/getMultiActor.handler
-    layers:
-      - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
-    events:
-      - http:
-          path: /getMultiple
-          method: post
-          authorizer: 
-            name: auth0
-          cors:
-            origin: 'http://localhost:3000'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
-  scanActor:
-    description: scan table and filter source
-    handler: src/module/actor/scanActor.handler
-    layers:
-      - arn:aws:lambda:${self:provider.region}:#{AWS::AccountId}:layer:aws-serverles-layers-module-${self:provider.stage}:latest
-    events:
-      - http:
-          path: /scan
-          method: post
-          authorizer: 
-            name: auth0
+          authorizer: auth0
           cors:
             origin: 'http://localhost:3000'
             headers:
